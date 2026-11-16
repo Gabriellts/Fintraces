@@ -1,0 +1,162 @@
+'use client';
+
+import { motion } from 'framer-motion';
+import DonutChart from '../DonutChart';
+import TransactionCard from '../TransactionCard';
+
+export default function HomeTab({ 
+  amanJajanHariIni, sisaHari, totalPengeluaran, transactions, 
+  sisaSaldo, saldoAwal, dataChart, loading, savingGoals = [], 
+  onOpenEditSaldo, onNavigateTab, onDeleteTransaction, onOpenAddGoal, onDeleteGoal 
+}) {
+  // Ambil Bulan & Tahun secara otomatis dalam Bahasa Indonesia
+  const currentMonthYear = new Date().toLocaleDateString('id-ID', {
+    month: 'long',
+    year: 'numeric',
+  });
+
+  return (
+    <motion.div key="home" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-8">
+      {/* Judul Bulan & Tahun Dinamis */}
+      <h1 className="text-2xl md:text-3xl font-bold capitalize">{currentMonthYear}</h1>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-gray-50 border border-gray-300 rounded-2xl p-6">
+          <p className="text-xs text-gray-500 font-medium">Aman jajan hari ini</p>
+          <h2 className="text-3xl lg:text-4xl font-extrabold my-2 text-gray-900 truncate" title={`Rp${amanJajanHariIni.toLocaleString('id-ID')}`}>
+            Rp{amanJajanHariIni.toLocaleString('id-ID')}
+          </h2>
+          <p className="text-xs text-gray-400">{sisaHari} hari lagi dalam bulan ini</p>
+        </div>
+
+        <div className="bg-gray-50 border border-gray-300 rounded-2xl p-6">
+          <p className="text-xs text-gray-500 font-medium">Pengeluaran bulan ini</p>
+          <p className="text-3xl lg:text-4xl font-extrabold my-2 text-gray-900 truncate" title={`Rp${totalPengeluaran.toLocaleString('id-ID')}`}>
+            Rp{totalPengeluaran.toLocaleString('id-ID')}
+          </p>
+          <p className="text-xs text-gray-400">{transactions.length} transaksi tercatat</p>
+        </div>
+
+        <div className="bg-gray-50 border border-gray-300 rounded-2xl p-6 relative">
+          <div className="flex justify-between items-center">
+            <p className="text-xs text-gray-500 font-medium">Sisa saldo</p>
+            <button onClick={onOpenEditSaldo} className="text-xs text-blue-600 font-semibold hover:underline">Atur Saldo</button>
+          </div>
+          <p className={`text-3xl lg:text-4xl font-extrabold my-2 truncate ${sisaSaldo < 0 ? 'text-red-600' : 'text-gray-900'}`} title={`Rp${sisaSaldo.toLocaleString('id-ID')}`}>
+            Rp{sisaSaldo.toLocaleString('id-ID')}
+          </p>
+          <p className="text-xs text-gray-400">Total awal: Rp{saldoAwal.toLocaleString('id-ID')}</p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-gray-50 border border-gray-300 rounded-2xl p-6">
+          <h3 className="text-base font-bold mb-4">Pengeluaran per kategori</h3>
+          <DonutChart customData={dataChart} />
+        </div>
+
+        <div className="bg-gray-50 border border-gray-300 rounded-2xl p-6">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-base font-bold">Transaksi terakhir</h3>
+            <button onClick={() => onNavigateTab('riwayat')} className="text-xs text-blue-600 font-semibold hover:underline">Lihat semua</button>
+          </div>
+
+          {loading ? (
+            <p className="text-xs text-gray-400">Memuat data...</p>
+          ) : transactions.length === 0 ? (
+            <p className="text-xs text-gray-400 py-6 text-center">Belum ada data transaksi bulan ini.</p>
+          ) : (
+            <div className="space-y-3">
+              {transactions.slice(0, 5).map((item) => (
+                <TransactionCard key={item.id} transaction={item} onDelete={onDeleteTransaction} />
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-2">
+        {/* Target Tabungan Dinamis + Fitur Hapus */}
+        <div className="bg-gray-50 border border-gray-300 rounded-2xl p-6 space-y-4">
+          <div className="flex justify-between items-center">
+            <h3 className="text-sm font-bold text-gray-900">🎯 Target Tabungan Saya</h3>
+            <button 
+              onClick={onOpenAddGoal} 
+              className="text-[11px] font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 px-2.5 py-1 rounded-md border border-blue-200 transition-colors"
+            >
+              + Tambah
+            </button>
+          </div>
+
+          {savingGoals.length === 0 ? (
+            <p className="text-xs text-gray-400 py-4 text-center">Belum ada target tabungan yang dibuat.</p>
+          ) : (
+            <div className="space-y-4">
+              {savingGoals.map((goal) => {
+                const currentVal = Number(goal.current || 0);
+                const targetVal = Number(goal.target || 1);
+                const percent = Math.min(100, Math.round((currentVal / targetVal) * 100));
+                const months = goal.target_months || 1;
+                const sisaKebutuhan = Math.max(0, targetVal - currentVal);
+                const perBulan = Math.ceil(sisaKebutuhan / months);
+
+                return (
+                  <div key={goal.id} className="space-y-1.5 border-b border-gray-200 pb-3 last:border-none last:pb-0">
+                    <div className="flex justify-between items-center text-xs font-semibold text-gray-800">
+                      <div className="flex items-center gap-1.5">
+                        <span className="truncate max-w-[110px]" title={goal.title}>{goal.title}</span>
+                        <button
+                          onClick={() => onDeleteGoal(goal.id)}
+                          className="text-gray-400 hover:text-red-600 text-[11px] transition-colors"
+                          title="Hapus Target"
+                        >
+                          🗑️
+                        </button>
+                      </div>
+                      <span className="text-gray-500 font-normal text-[11px]">
+                        Rp{currentVal.toLocaleString('id-ID')} / Rp{targetVal.toLocaleString('id-ID')}
+                      </span>
+                    </div>
+                    
+                    <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                      <div className="bg-neutral-800 h-2 rounded-full transition-all duration-300" style={{ width: `${percent}%` }}></div>
+                    </div>
+
+                    <div className="flex justify-between text-[10px] text-gray-400 pt-0.5">
+                      <span>{months === 1 ? 'Target Bulan Ini' : `${months} Bulan`} ({percent}%)</span>
+                      <span>~Rp{perBulan.toLocaleString('id-ID')}/bln</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        <div className="bg-gray-50 border border-gray-300 rounded-2xl p-6 space-y-3">
+          <h3 className="text-sm font-bold text-gray-900">⚡ Perintah Cepat Bot Telegram</h3>
+          <p className="text-xs text-gray-500 leading-relaxed">
+            Ketik perintah di bawah ini langsung di chat <strong className="text-gray-800">@softdevkeuanganbot</strong>:
+          </p>
+          <div className="grid grid-cols-2 gap-2 text-[11px] font-mono">
+            <div className="bg-white p-2 rounded-lg border border-gray-200 text-gray-700">/saldo - Cek Sisa</div>
+            <div className="bg-white p-2 rounded-lg border border-gray-200 text-gray-700">/riwayat - 5 Transaksi</div>
+            <div className="bg-white p-2 rounded-lg border border-gray-200 text-gray-700">/budget - Status Kategori</div>
+            <div className="bg-white p-2 rounded-lg border border-gray-200 text-gray-700">/insight - Tips AI</div>
+          </div>
+        </div>
+
+        <div className="bg-gray-50 border border-gray-300 rounded-2xl p-6 space-y-3 md:col-span-2 lg:col-span-1">
+          <h3 className="text-sm font-bold text-gray-900">💡 Rekomendasi FinTraces AI</h3>
+          <p className="text-xs text-gray-600 leading-relaxed">
+            {sisaSaldo > 500000 
+              ? 'Keuangan kamu bulan ini dalam kategori aman! Pertahankan batas aman jajan harian agar tidak ada pembengkakan di akhir bulan.'
+              : sisaSaldo >= 0 
+              ? 'Perhatian! Sisa saldo kamu sudah menipis. Utamakan pengeluaran untuk kebutuhan kuliah dan makan harian saja.'
+              : '⚠️ PERINGATAN DEFISIT! Uang sakumu telah habis/terlampaui. Hentikan pengeluaran yang tidak penting!'}
+          </p>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
