@@ -15,9 +15,10 @@ export function TransactionProvider({ children }) {
   const [saldoAwal, setSaldoAwal] = useState(0);
   const [savingGoals, setSavingGoals] = useState([]);
 
-  // Ambil semua data milik user (saldo, target tabungan, transaksi)
-  const fetchAll = useCallback(async (telegramId) => {
-    setLoading(true);
+  // Ambil semua data milik user (mendukung mode silent agar tidak berkedip saat auto-refresh)
+  const fetchAll = useCallback(async (telegramId, silent = false) => {
+    if (!telegramId) return;
+    if (!silent) setLoading(true);
     const id = String(telegramId);
 
     const { data: settingData, error: settingError } = await supabase
@@ -40,7 +41,7 @@ export function TransactionProvider({ children }) {
     if (!error) setTransactions(data || []);
     else console.error('Gagal mengambil data transaksi:', error);
 
-    setLoading(false);
+    if (!silent) setLoading(false);
   }, []);
 
   // Pulihkan sesi saat halaman di-refresh
@@ -61,6 +62,52 @@ export function TransactionProvider({ children }) {
     }
     setAuthReady(true);
   }, [fetchAll]);
+
+  // Auto-Refresh Data Tanpa Reload (Supabase Realtime + Visibility Sync)
+  useEffect(() => {
+    if (!user?.id) return;
+    const id = String(user.id);
+
+    // 1. Dengar perubahan langsung dari Supabase (saat Bot Telegram kirim/ubah data)
+    const channel = supabase
+      .channel(`fintraces-live-${id}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'transactions', filter: `telegram_id=eq.${id}` },
+        () => fetchAll(id, true)
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'saving_goals', filter: `telegram_id=eq.${id}` },
+        () => fetchAll(id, true)
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'user_settings', filter: `telegram_id=eq.${id}` },
+        () => fetchAll(id, true)
+      )
+      .subscribe();
+
+    // 2. Tarik data terbaru otomatis saat balik dari aplikasi Telegram ke browser HP
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        fetchAll(id, true);
+      }
+    };
+
+    const handleFocus = () => {
+      fetchAll(id, true);
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      supabase.removeChannel(channel);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, [user?.id, fetchAll]);
 
   const login = (telegramUser) => {
     if (!validateTelegramId(telegramUser?.id).valid) return;
