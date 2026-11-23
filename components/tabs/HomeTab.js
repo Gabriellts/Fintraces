@@ -1,6 +1,18 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import {
+  ShieldCheck,
+  TrendingDown,
+  Wallet,
+  Target,
+  Plus,
+  Trash2,
+  Bot,
+  Sparkles,
+  ReceiptText,
+  Calendar
+} from 'lucide-react';
 import DonutChart from '../DonutChart';
 import TransactionCard from '../TransactionCard';
 
@@ -17,27 +29,45 @@ export default function HomeTab({
 
   return (
     <motion.div key="home" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-8">
-      {/* Judul Bulan & Tahun Dinamis */}
-      <h1 className="text-2xl md:text-3xl font-bold capitalize">{currentMonthYear}</h1>
+      {/* Judul Bulan & Tahun Dinamis dengan Icon */}
+      <div className="flex items-center gap-2.5">
+        <div className="p-2 bg-neutral-900 text-white rounded-xl">
+          <Calendar className="w-5 h-5" />
+        </div>
+        <h1 className="text-2xl md:text-3xl font-bold capitalize text-gray-900">{currentMonthYear}</h1>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-gray-50 border border-gray-300 rounded-2xl p-6">
-          <p className="text-xs text-gray-500 font-medium">Aman jajan hari ini</p>
+        {/* Card 1: Aman Jajan */}
+        <div className="bg-gray-50 border border-gray-300 rounded-2xl p-6 relative overflow-hidden">
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-gray-500 font-medium">Aman jajan hari ini</p>
+            <div className="p-1.5 bg-emerald-100 text-emerald-700 rounded-lg">
+              <ShieldCheck className="w-4 h-4" />
+            </div>
+          </div>
           <h2 className="text-3xl lg:text-4xl font-extrabold my-2 text-gray-900 truncate" title={`Rp${amanJajanHariIni.toLocaleString('id-ID')}`}>
             Rp{amanJajanHariIni.toLocaleString('id-ID')}
           </h2>
           <p className="text-xs text-gray-400">{sisaHari} hari lagi dalam bulan ini</p>
         </div>
 
-        <div className="bg-gray-50 border border-gray-300 rounded-2xl p-6">
-          <p className="text-xs text-gray-500 font-medium">Pengeluaran bulan ini</p>
+        {/* Card 2: Pengeluaran Bulan Ini */}
+        <div className="bg-gray-50 border border-gray-300 rounded-2xl p-6 relative overflow-hidden">
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-gray-500 font-medium">Pengeluaran bulan ini</p>
+            <div className="p-1.5 bg-rose-100 text-rose-700 rounded-lg">
+              <TrendingDown className="w-4 h-4" />
+            </div>
+          </div>
           <p className="text-3xl lg:text-4xl font-extrabold my-2 text-gray-900 truncate" title={`Rp${totalPengeluaran.toLocaleString('id-ID')}`}>
             Rp{totalPengeluaran.toLocaleString('id-ID')}
           </p>
           <p className="text-xs text-gray-400">{transactions.length} transaksi tercatat</p>
         </div>
 
-        <div className="bg-gray-50 border border-gray-300 rounded-2xl p-6 relative">
+        {/* Card 3: Sisa Saldo */}
+        <div className="bg-gray-50 border border-gray-300 rounded-2xl p-6 relative overflow-hidden">
           <div className="flex justify-between items-center">
             <p className="text-xs text-gray-500 font-medium">Sisa saldo</p>
             <button onClick={onOpenEditSaldo} className="text-xs text-blue-600 font-semibold hover:underline">Atur Saldo</button>
@@ -45,19 +75,25 @@ export default function HomeTab({
           <p className={`text-3xl lg:text-4xl font-extrabold my-2 truncate ${sisaSaldo < 0 ? 'text-red-600' : 'text-gray-900'}`} title={`Rp${sisaSaldo.toLocaleString('id-ID')}`}>
             Rp{sisaSaldo.toLocaleString('id-ID')}
           </p>
-          <p className="text-xs text-gray-400">Total awal: Rp{saldoAwal.toLocaleString('id-ID')}</p>
+          <div className="flex items-center justify-between text-xs text-gray-400">
+            <span>Total awal: Rp{saldoAwal.toLocaleString('id-ID')}</span>
+            <Wallet className="w-4 h-4 text-gray-400" />
+          </div>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-gray-50 border border-gray-300 rounded-2xl p-6">
-          <h3 className="text-base font-bold mb-4">Pengeluaran per kategori</h3>
+          <h3 className="text-base font-bold mb-4 text-gray-900">Pengeluaran per kategori</h3>
           <DonutChart customData={dataChart} />
         </div>
 
         <div className="bg-gray-50 border border-gray-300 rounded-2xl p-6">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-base font-bold">Transaksi terakhir</h3>
+            <div className="flex items-center gap-2">
+              <ReceiptText className="w-4 h-4 text-gray-700" />
+              <h3 className="text-base font-bold text-gray-900">Transaksi terakhir</h3>
+            </div>
             <button onClick={() => onNavigateTab('riwayat')} className="text-xs text-blue-600 font-semibold hover:underline">Lihat semua</button>
           </div>
 
@@ -76,15 +112,18 @@ export default function HomeTab({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-2">
-        {/* Target Tabungan Dinamis + Fitur Hapus */}
+        {/* Target Tabungan Dinamis */}
         <div className="bg-gray-50 border border-gray-300 rounded-2xl p-6 space-y-4">
           <div className="flex justify-between items-center">
-            <h3 className="text-sm font-bold text-gray-900">🎯 Target Tabungan Saya</h3>
+            <div className="flex items-center gap-2">
+              <Target className="w-4 h-4 text-blue-600" />
+              <h3 className="text-sm font-bold text-gray-900">Target Tabungan Saya</h3>
+            </div>
             <button 
               onClick={onOpenAddGoal} 
-              className="text-[11px] font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 px-2.5 py-1 rounded-md border border-blue-200 transition-colors"
+              className="text-[11px] font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 px-2.5 py-1 rounded-md border border-blue-200 transition-colors flex items-center gap-1"
             >
-              + Tambah
+              <Plus className="w-3 h-3" /> Tambah
             </button>
           </div>
 
@@ -107,10 +146,10 @@ export default function HomeTab({
                         <span className="truncate max-w-[110px]" title={goal.title}>{goal.title}</span>
                         <button
                           onClick={() => onDeleteGoal(goal.id)}
-                          className="text-gray-400 hover:text-red-600 text-[11px] transition-colors"
+                          className="text-gray-400 hover:text-red-600 p-1 rounded transition-colors"
                           title="Hapus Target"
                         >
-                          🗑️
+                          <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
                       <span className="text-gray-500 font-normal text-[11px]">
@@ -133,8 +172,12 @@ export default function HomeTab({
           )}
         </div>
 
+        {/* Perintah Cepat Bot Telegram */}
         <div className="bg-gray-50 border border-gray-300 rounded-2xl p-6 space-y-3">
-          <h3 className="text-sm font-bold text-gray-900">⚡ Perintah Cepat Bot Telegram</h3>
+          <div className="flex items-center gap-2">
+            <Bot className="w-4 h-4 text-blue-500" />
+            <h3 className="text-sm font-bold text-gray-900">Perintah Bot Telegram</h3>
+          </div>
           <p className="text-xs text-gray-500 leading-relaxed">
             Ketik perintah di bawah ini langsung di chat <strong className="text-gray-800">@softdevkeuanganbot</strong>:
           </p>
@@ -146,8 +189,12 @@ export default function HomeTab({
           </div>
         </div>
 
+        {/* Rekomendasi FinTraces AI */}
         <div className="bg-gray-50 border border-gray-300 rounded-2xl p-6 space-y-3 md:col-span-2 lg:col-span-1">
-          <h3 className="text-sm font-bold text-gray-900">💡 Rekomendasi FinTraces AI</h3>
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-amber-500" />
+            <h3 className="text-sm font-bold text-gray-900">Rekomendasi FinTraces AI</h3>
+          </div>
           <p className="text-xs text-gray-600 leading-relaxed">
             {sisaSaldo > 500000 
               ? 'Keuangan kamu bulan ini dalam kategori aman! Pertahankan batas aman jajan harian agar tidak ada pembengkakan di akhir bulan.'

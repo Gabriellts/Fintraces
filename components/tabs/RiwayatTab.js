@@ -2,12 +2,30 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import {
+  History,
+  Trash2,
+  Layers,
+  UtensilsCrossed,
+  Car,
+  GraduationCap,
+  Gamepad2,
+  Coins,
+  Receipt
+} from 'lucide-react';
 import TransactionCard from '../TransactionCard';
+
+const CATEGORY_CHIPS = [
+  { name: 'Semua', icon: Layers },
+  { name: 'Makanan & Minuman', icon: UtensilsCrossed },
+  { name: 'Transportasi', icon: Car },
+  { name: 'Kuliah', icon: GraduationCap },
+  { name: 'Hiburan', icon: Gamepad2 },
+  { name: 'Umum', icon: Coins },
+];
 
 export default function RiwayatTab({ transactions = [], onResetData, onDeleteTransaction }) {
   const [selectedCategory, setSelectedCategory] = useState('Semua');
-
-  const categories = ['Semua', 'Makanan & Minuman', 'Transportasi', 'Kuliah', 'Hiburan', 'Umum'];
 
   // Filter transaksi berdasarkan kategori chip yang dipilih
   const filteredTransactions = transactions.filter((item) => {
@@ -33,7 +51,6 @@ export default function RiwayatTab({ transactions = [], onResetData, onDeleteTra
     if (isToday) return 'Hari ini';
     if (isYesterday) return 'Kemarin';
 
-    // Mengubah "Sebelumnya" menjadi tanggal spesifik Bahasa Indonesia (Contoh: 31 Oktober 2026)
     return txDate.toLocaleDateString('id-ID', {
       day: 'numeric',
       month: 'long',
@@ -56,36 +73,46 @@ export default function RiwayatTab({ transactions = [], onResetData, onDeleteTra
       
       {/* Header & Reset Data */}
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-900">Riwayat Transaksi</h1>
+        <div className="flex items-center gap-2">
+          <History className="w-6 h-6 text-neutral-800" />
+          <h1 className="text-2xl font-bold text-gray-900">Riwayat Transaksi</h1>
+        </div>
         <button
           onClick={onResetData}
-          className="text-xs font-semibold text-red-600 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg border border-red-200 transition-colors flex items-center gap-1"
+          className="text-xs font-semibold text-red-600 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg border border-red-200 transition-colors flex items-center gap-1.5"
         >
-          🗑️ Reset Data
+          <Trash2 className="w-3.5 h-3.5" />
+          <span>Reset Data</span>
         </button>
       </div>
 
-      {/* Filter Kategori Chips */}
+      {/* Filter Kategori Chips dengan Icon */}
       <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
-        {categories.map((cat) => (
-          <button
-            key={cat}
-            onClick={() => setSelectedCategory(cat)}
-            className={`text-xs px-4 py-2 rounded-full font-medium whitespace-nowrap transition-colors ${
-              selectedCategory === cat
-                ? 'bg-neutral-800 text-white'
-                : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
-            }`}
-          >
-            {cat}
-          </button>
-        ))}
+        {CATEGORY_CHIPS.map((chip) => {
+          const ChipIcon = chip.icon;
+          const isActive = selectedCategory === chip.name;
+          return (
+            <button
+              key={chip.name}
+              onClick={() => setSelectedCategory(chip.name)}
+              className={`text-xs px-3.5 py-2 rounded-full font-medium whitespace-nowrap transition-all flex items-center gap-1.5 ${
+                isActive
+                  ? 'bg-neutral-900 text-white shadow-sm'
+                  : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
+              }`}
+            >
+              <ChipIcon className="w-3.5 h-3.5" />
+              <span>{chip.name}</span>
+            </button>
+          );
+        })}
       </div>
 
       {/* Daftar Transaksi terkelompok berdasarkan Tanggal */}
       {filteredTransactions.length === 0 ? (
-        <div className="bg-white border border-gray-200 rounded-2xl p-12 text-center text-gray-400 text-sm">
-          Tidak ada transaksi ditemukan.
+        <div className="bg-white border border-gray-200 rounded-2xl p-12 text-center text-gray-400 text-sm flex flex-col items-center justify-center gap-2">
+          <Receipt className="w-10 h-10 text-gray-300" />
+          <p>Tidak ada transaksi ditemukan.</p>
         </div>
       ) : (
         <div className="space-y-6">
@@ -104,4 +131,3 @@ export default function RiwayatTab({ transactions = [], onResetData, onDeleteTra
     </motion.div>
   );
 }
-
